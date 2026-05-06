@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Hệ thống Tuyển dụng Mai Linh </title>
+    <title>Hệ thống Tuyển dụng Mai Linh</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 40px; }
         .form-container { background: white; padding: 30px; max-width: 500px; margin: auto; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
@@ -11,9 +11,21 @@
         label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
         input[type="text"], select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
 
-        /* Style cho các ô Checkbox */
         .checkbox-group { display: flex; align-items: center; gap: 10px; background: #f9f9f9; padding: 10px; border-radius: 6px; margin-bottom: 10px; border: 1px solid #eee; }
         .checkbox-group input { width: 18px; height: 18px; cursor: pointer; }
+
+        /* Cấu hình giao diện riêng cho khu vực ẩn hiện */
+        #khuVucTaiKy {
+            margin-left: 20px;
+            border-left: 3px solid #28a745;
+            padding-left: 15px;
+            background: #fdfdfd;
+            border-radius: 0 6px 6px 0;
+            padding-top: 5px;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        .ghi-chu-nho { font-size: 13px; color: #666; font-style: italic; margin-bottom: 10px; margin-top: 0; }
 
         button { width: 100%; padding: 14px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
         button:hover { background: #218838; }
@@ -24,16 +36,16 @@
 <body>
 
 <div class="form-container">
-    <h2>ĐƠN ĐĂNG KÝ LÁI XE </h2>
+    <h2>ĐƠN ĐĂNG KÝ LÁI XE</h2>
 
     <div class="input-group">
         <label>Họ và tên ứng viên</label>
-        <input type="text" id="hoTen" placeholder="Nguyễn Văn A">
+        <input type="text" id="hoTen" placeholder="Ví dụ: Nguyễn Văn A">
     </div>
 
     <div class="input-group">
         <label>Số CCCD</label>
-        <input type="text" id="soCCCD" placeholder="00120xxxxxxx">
+        <input type="text" id="soCCCD" placeholder="Ví dụ: 00120xxxxxxx">
     </div>
 
     <div class="input-group">
@@ -45,21 +57,27 @@
         </select>
     </div>
 
-    <div class="section-title">Thông tin bổ sung (Dành cho lái xe tái ký)</div>
+    <div class="section-title">Thông tin bổ sung</div>
 
+    <!-- Tích vào đây sẽ gọi hàm anHienTaiKy() -->
     <div class="checkbox-group">
-        <input type="checkbox" id="trangThaiTaiKy">
-        <label for="trangThaiTaiKy">Là lái xe tái ký (đã từng làm tại Mai Linh)</label>
+        <input type="checkbox" id="trangThaiTaiKy" onchange="anHienTaiKy()">
+        <label for="trangThaiTaiKy" style="font-weight: bold; color: #28a745;">Là lái xe tái ký (đã từng làm tại Mai Linh)</label>
     </div>
 
-    <div class="checkbox-group">
-        <input type="checkbox" id="noCongNo">
-        <label for="noCongNo">Còn nợ công nợ cũ</label>
-    </div>
+    <!-- Khu vực này mặc định bị ẩn (display: none) -->
+    <div id="khuVucTaiKy" style="display: none;">
+        <p class="ghi-chu-nho">* Nếu không có công nợ hay vi phạm nào dưới đây, vui lòng bỏ trống.</p>
 
-    <div class="checkbox-group">
-        <input type="checkbox" id="viPhamNhanThan">
-        <label for="viPhamNhanThan">Có vi phạm nhân thân/tiền án</label>
+        <div class="checkbox-group">
+            <input type="checkbox" id="noCongNo">
+            <label for="noCongNo" style="color: #d32f2f;">Còn nợ công nợ cũ</label>
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="viPhamNhanThan">
+            <label for="viPhamNhanThan" style="color: #d32f2f;">Có vi phạm nhân thân/tiền án</label>
+        </div>
     </div>
 
     <button onclick="nopHoSo()">GỬI HỒ SƠ ĐĂNG KÝ</button>
@@ -67,8 +85,22 @@
 </div>
 
 <script>
+    // Hàm xử lý UX: Ẩn/hiện khu vực tái ký
+    function anHienTaiKy() {
+        const isTaiKy = document.getElementById('trangThaiTaiKy').checked;
+        const khuVuc = document.getElementById('khuVucTaiKy');
+
+        if (isTaiKy) {
+            khuVuc.style.display = 'block'; // Hiện ra
+        } else {
+            khuVuc.style.display = 'none'; // Ẩn đi
+            // Tự động bỏ dấu tích ở 2 ô con nếu người dùng bỏ tích ô mẹ
+            document.getElementById('noCongNo').checked = false;
+            document.getElementById('viPhamNhanThan').checked = false;
+        }
+    }
+
     async function nopHoSo() {
-        // Thu thập dữ liệu từ tất cả các ô (bao gồm cả các ô checkbox)
         const data = {
             hoTen: document.getElementById('hoTen').value,
             soCCCD: document.getElementById('soCCCD').value,
@@ -76,7 +108,7 @@
             trangThaiTaiKy: document.getElementById('trangThaiTaiKy').checked,
             noCongNo: document.getElementById('noCongNo').checked,
             viPhamNhanThan: document.getElementById('viPhamNhanThan').checked,
-            datSucKhoe: true // Mặc định là đạt sức khỏe để đi tiếp bước sau
+            datSucKhoe: true
         };
 
         if(!data.hoTen || !data.soCCCD) {
@@ -85,7 +117,7 @@
         }
 
         try {
-            const response = await fetch('http://localhost:9090/api/recruitment/submit', {
+            const response = await fetch('/api/recruitment/submit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -95,7 +127,6 @@
             const messageElement = document.getElementById('thongBao');
             messageElement.innerText = "Hệ thống phản hồi: " + result;
 
-            // Đổi màu thông báo dựa trên kết quả
             messageElement.style.color = result.includes("loại") ? "red" : "green";
 
         } catch (error) {
