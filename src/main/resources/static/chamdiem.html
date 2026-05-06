@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Mai Linh - Chấm Điểm Sát Hạch</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #e9ecef; padding: 40px; }
+        .form-box { background: white; max-width: 400px; margin: auto; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-top: 5px solid #ff9800; }
+        h2 { color: #ff9800; text-align: center; margin-bottom: 25px; }
+        label { font-weight: 600; margin-top: 15px; display: block; color: #333; }
+        input[type="number"], input[type="text"] { width: 100%; padding: 12px; margin-top: 8px; margin-bottom: 15px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; }
+
+        .checkbox-row { margin-top: 10px; margin-bottom: 20px; background: #fff3e0; padding: 12px; border-radius: 6px; border: 1px solid #ffe0b2; display: flex; align-items: center; gap: 10px;}
+        .checkbox-row input { width: 18px; height: 18px; cursor: pointer;}
+
+        button { width: 100%; padding: 14px; background: #ff9800; color: white; border: none; font-weight: bold; cursor: pointer; font-size: 16px; border-radius: 6px; transition: 0.3s;}
+        button:hover { background: #e68a00; }
+        #ketQua { text-align: center; margin-top: 20px; font-weight: bold; padding: 12px; border-radius: 6px; }
+    </style>
+</head>
+<body>
+
+<div class="form-box">
+    <h2>📝 CHẤM ĐIỂM THỰC HÀNH</h2>
+
+    <label>Mã hồ sơ ứng viên (ID)</label>
+    <input type="number" id="idUngVien" placeholder="Ví dụ: 1" required>
+
+    <label>Số lần chết máy (Trừ 0.5đ/lần)</label>
+    <input type="number" id="chetMay" value="0" min="0">
+
+    <label>Số lần lộn số (Trừ 0.5đ/lần)</label>
+    <input type="number" id="lonSo" value="0" min="0">
+
+    <div class="checkbox-row">
+        <input type="checkbox" id="loaiTrucTiep">
+        <label for="loaiTrucTiep" style="margin-top: 0; color: #d32f2f; cursor: pointer;">Lỗi loại trực tiếp (Bỏ thi, tai nạn...)</label>
+    </div>
+
+    <button onclick="guiDiem()">CẬP NHẬT KẾT QUẢ</button>
+    <div id="ketQua"></div>
+</div>
+
+<script>
+    async function guiDiem() {
+        const id = document.getElementById('idUngVien').value;
+        const chetMay = document.getElementById('chetMay').value;
+        const lonSo = document.getElementById('lonSo').value;
+        const loaiTrucTiep = document.getElementById('loaiTrucTiep').checked;
+
+        if(!id) {
+            alert("Vui lòng nhập Mã hồ sơ ứng viên!");
+            return;
+        }
+
+        // LƯU Ý: Đã đổi thành đường dẫn tương đối (bắt đầu bằng /api...)
+        const url = `/api/recruitment/evaluate/${id}?chetMay=${chetMay}&lonSo=${lonSo}&loaiTrucTiep=${loaiTrucTiep}`;
+
+        try {
+            const response = await fetch(url, {
+                method: 'PUT'
+            });
+
+            const kqEl = document.getElementById('ketQua');
+
+            if (response.ok) {
+                const data = await response.json();
+                kqEl.innerHTML = `<span style="color: #2e7d32;">✔ Đã chấm điểm thành công!</span><br>
+                                  <div style="margin-top: 10px; font-size: 15px; font-weight: normal; color: #333;">
+                                  Hệ thống báo: Ứng viên này <b style="color:${data.trangThai === 'DAT' ? 'green' : 'red'};">${data.trangThai}</b> với <b>${data.diemThucHanh} điểm</b>.</div>`;
+                kqEl.style.backgroundColor = "#e8f5e9";
+                kqEl.style.border = "1px solid #c8e6c9";
+            } else {
+                kqEl.innerHTML = `<span style="color: #c62828;">✖ Lỗi: Không tìm thấy ứng viên!</span>`;
+                kqEl.style.backgroundColor = "#ffebee";
+                kqEl.style.border = "1px solid #ffcdd2";
+            }
+        } catch (error) {
+            alert("Không kết nối được với máy chủ Java!");
+        }
+    }
+</script>
+
+</body>
+</html>
