@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UngVienRepository extends JpaRepository<UngVien, Long> {
-    // Không cần viết gì thêm ở đây cả
+
 }

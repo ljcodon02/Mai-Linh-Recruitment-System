@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Mai Linh - Dashboard Quản Trị Nhân Sự</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f6; padding: 30px; margin: 0; }
+        .dashboard { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 1200px; margin: auto; margin-bottom: 30px; }
+
+        .header-title { border-bottom: 2px solid #ffcdd2; padding-bottom: 10px; margin-top: 0; display: flex; justify-content: space-between; align-items: center; }
+        .title-red { color: #d32f2f; }
+        .title-dark { color: #212121; border-bottom: 2px solid #e0e0e0; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f8f9fa; color: #333; }
+        tr:hover { background-color: #f5f5f5; }
+
+        .btn-refresh { padding: 8px 15px; background: #1976d2; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-refresh:hover { background: #1565c0; }
+
+        .status-badge { background: #ffebee; color: #c62828; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .tag-loi { display: inline-block; background: #424242; color: white; padding: 3px 8px; border-radius: 4px; font-size: 12px; margin: 2px; }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <div class="header-title">
+        <h2 class="title-red">🚨 DANH SÁCH TÀI XẾ CẦN GỌI LẠI HỖ TRỢ</h2>
+        <button class="btn-refresh" onclick="taiDanhSachHoTro()">🔄 Tải lại yêu cầu</button>
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>STT</th>
+            <th>Họ Tên</th>
+            <th>Số Điện Thoại</th>
+            <th>MSNV Bị Kẹt</th>
+            <th>Trạng thái xử lý</th>
+        </tr>
+        </thead>
+        <tbody id="bangHoTro">
+        <tr><td colspan="5" style="text-align: center; color: #888;">Đang tải dữ liệu...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="dashboard">
+    <div class="header-title title-dark">
+        <h2>📓 DANH SÁCH NHÂN VIÊN VI PHẠM </h2>
+        <button class="btn-refresh" style="background: #424242;" onclick="taiDanhSachDen()">🔄 Tải lại sổ đen</button>
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Mã NV</th>
+            <th>Họ Tên</th>
+            <th>Các lỗi vi phạm bị ghi nhận (Căn cứ BM261)</th>
+        </tr>
+        </thead>
+        <tbody id="bangDanhSachDen">
+        <tr><td colspan="3" style="text-align: center; color: #888;">Đang tải dữ liệu...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // 1. Kéo danh sách Yêu cầu gọi lại
+    async function taiDanhSachHoTro() {
+        const tbody = document.getElementById('bangHoTro');
+        try {
+            const response = await fetch('/api/recruitment/callbacks');
+            const data = await response.json();
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #888;">Chưa có yêu cầu hỗ trợ nào.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            data.forEach((item, index) => {
+                tbody.innerHTML += `<tr>
+                    <td>${index + 1}</td>
+                    <td style="font-weight: bold;">${item.hoTen}</td>
+                    <td style="color: #1976d2; font-weight: bold;">${item.soDienThoai}</td>
+                    <td style="color: #d32f2f; font-weight: bold;">${item.msnv}</td>
+                    <td><span class="status-badge">Cần gọi ngay</span></td>
+                </tr>`;
+            });
+        } catch (error) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Lỗi kết nối Server!</td></tr>';
+        }
+    }
+
+    // 2. Kéo danh sách Sổ đen (Blacklist)
+    async function taiDanhSachDen() {
+        const tbody = document.getElementById('bangDanhSachDen');
+        try {
+            const response = await fetch('/api/recruitment/blacklist');
+            const data = await response.json();
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #888;">Sổ đen đang trống.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            data.forEach(item => {
+                // Xử lý tạo các tag lỗi hiển thị cho đẹp
+                let cacLoi = '';
+                if(item.loiGianLanTromCap) cacLoi += '<span class="tag-loi">Gian lận/Trộm cắp</span>';
+                if(item.loiMaTuy) cacLoi += '<span class="tag-loi">Dương tính ma túy</span>';
+                if(item.loiViPhamPhapLuat) cacLoi += '<span class="tag-loi">Vi phạm pháp luật</span>';
+                if(item.loiHanhHung) cacLoi += '<span class="tag-loi">Hành hung/Thái độ</span>';
+                if(item.loiTuChoiCuoc) cacLoi += '<span class="tag-loi">Từ chối cước</span>';
+                if(item.loiDanhNhau) cacLoi += '<span class="tag-loi">Đánh nhau bến bãi</span>';
+                if(item.loiCamCoXe) cacLoi += '<span class="tag-loi">Cầm cố/Thế chấp xe</span>';
+                if(item.loiGiaoXeSaiQuyDinh) cacLoi += '<span class="tag-loi">Giao xe sai quy định</span>';
+                if(item.loiKhac) cacLoi += `<span class="tag-loi">${item.loiKhac}</span>`;
+
+                tbody.innerHTML += `<tr>
+                    <td style="font-weight: bold; color: #d32f2f;">${item.msnv}</td>
+                    <td style="font-weight: bold;">${item.hoTen}</td>
+                    <td>${cacLoi}</td>
+                </tr>`;
+            });
+        } catch (error) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: red;">Lỗi kết nối Server!</td></tr>';
+        }
+    }
+
+    // Chạy cả 2 hàm tải dữ liệu khi vừa mở web lên
+    window.onload = function() {
+        taiDanhSachHoTro();
+        taiDanhSachDen();
+    };
+</script>
+
+</body>
+</html>

@@ -5,22 +5,26 @@ import lombok.Data;
 
 @Entity
 @Table(name = "ung_vien")
-@Data // Cực kỳ quan trọng để nó tự đẻ ra hàm isNoCongNo()
+@Data
 public class UngVien {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String hoTen;
-    private String soCCCD;
-    private String loaiBangLai;
-    private boolean trangThaiTaiKy;
 
-    // HAI DÒNG NÀY ĐANG THIẾU:
-    private boolean noCongNo;
-    private boolean viPhamNhanThan;
+    @Column(unique = true)
+    private String soCCCD;
+
+    // ĐÃ SỬA CHỮ 'int' THÀNH 'Integer' ĐỂ CHẤP NHẬN GIÁ TRỊ NULL
+    private Integer tuoi;
+
+    private String loaiBangLai;
+    private boolean datSucKhoe;
+
+    private boolean trangThaiTaiKy;
+    private String msnv;
 
     private double diemThucHanh;
-    private boolean datSucKhoe;
     private String trangThai;
 }

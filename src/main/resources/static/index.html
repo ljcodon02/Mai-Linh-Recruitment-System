@@ -9,26 +9,18 @@
         h2 { color: #28a745; text-align: center; margin-bottom: 25px; }
         .input-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
-        input[type="text"], select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        input[type="text"], input[type="number"], select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
 
         .checkbox-group { display: flex; align-items: center; gap: 10px; background: #f9f9f9; padding: 10px; border-radius: 6px; margin-bottom: 10px; border: 1px solid #eee; }
         .checkbox-group input { width: 18px; height: 18px; cursor: pointer; }
 
-        /* Cấu hình giao diện riêng cho khu vực ẩn hiện */
-        #khuVucTaiKy {
-            margin-left: 20px;
-            border-left: 3px solid #28a745;
-            padding-left: 15px;
-            background: #fdfdfd;
-            border-radius: 0 6px 6px 0;
-            padding-top: 5px;
-            padding-bottom: 5px;
-            margin-bottom: 15px;
-        }
-        .ghi-chu-nho { font-size: 13px; color: #666; font-style: italic; margin-bottom: 10px; margin-top: 0; }
+        /* Css cho các nút bấm */
+        .btn-submit { width: 100%; padding: 14px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; margin-top: 10px;}
+        .btn-submit:hover { background: #218838; }
 
-        button { width: 100%; padding: 14px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
-        button:hover { background: #218838; }
+        .btn-warning { width: 100%; padding: 14px; background: #fd7e14; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; margin-top: 10px;}
+        .btn-warning:hover { background: #e86e04; }
+
         #thongBao { margin-top: 20px; text-align: center; font-weight: bold; }
         .section-title { font-size: 14px; color: #666; margin-top: 20px; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
     </style>
@@ -49,6 +41,16 @@
     </div>
 
     <div class="input-group">
+        <label>Số điện thoại liên hệ</label>
+        <input type="text" id="soDienThoai" placeholder="Ví dụ: 0912345678">
+    </div>
+
+    <div class="input-group">
+        <label>Tuổi ứng viên</label>
+        <input type="number" id="tuoi" placeholder="Ví dụ: 25">
+    </div>
+
+    <div class="input-group">
         <label>Loại bằng lái</label>
         <select id="loaiBangLai">
             <option value="B2">Hạng B2</option>
@@ -59,55 +61,136 @@
 
     <div class="section-title">Thông tin bổ sung</div>
 
-    <!-- Tích vào đây sẽ gọi hàm anHienTaiKy() -->
     <div class="checkbox-group">
         <input type="checkbox" id="trangThaiTaiKy" onchange="anHienTaiKy()">
         <label for="trangThaiTaiKy" style="font-weight: bold; color: #28a745;">Là lái xe tái ký (đã từng làm tại Mai Linh)</label>
     </div>
 
-    <!-- Khu vực này mặc định bị ẩn (display: none) -->
-    <div id="khuVucTaiKy" style="display: none;">
-        <p class="ghi-chu-nho">* Nếu không có công nợ hay vi phạm nào dưới đây, vui lòng bỏ trống.</p>
-
-        <div class="checkbox-group">
-            <input type="checkbox" id="noCongNo">
-            <label for="noCongNo" style="color: #d32f2f;">Còn nợ công nợ cũ</label>
+    <div id="khuVucTaiKy" style="display: none; background: #fff3e0; border-left: 4px solid #ff9800; padding: 15px; margin-bottom: 15px; border-radius: 6px;">
+        <label style="color: #e65100; margin-bottom: 8px;">Vui lòng nhập Mã nhân viên cũ (MSNV)</label>
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="msnv" placeholder="Nhập thử: XAU123" style="margin: 0; flex: 1;">
+            <button type="button" onclick="kiemTraMSNV()" style="background: #ff9800; border: none; color: white; border-radius: 6px; font-weight: bold; width: auto; padding: 0 20px; cursor: pointer;">KIỂM TRA</button>
         </div>
-
-        <div class="checkbox-group">
-            <input type="checkbox" id="viPhamNhanThan">
-            <label for="viPhamNhanThan" style="color: #d32f2f;">Có vi phạm nhân thân/tiền án</label>
-        </div>
+        <p id="thongBaoMSNV" style="font-size: 13px; font-weight: bold; margin-top: 10px; margin-bottom: 0;"></p>
     </div>
 
-    <button onclick="nopHoSo()">GỬI HỒ SƠ ĐĂNG KÝ</button>
+    <button id="nutGuiHoSo" class="btn-submit" onclick="nopHoSo()">GỬI HỒ SƠ ĐĂNG KÝ</button>
+
+    <button id="nutGoiLai" class="btn-warning" onclick="yeuCauGoiLai()" style="display: none;">☎ YÊU CẦU NHÂN SỰ GỌI LẠI HỖ TRỢ</button>
+
     <p id="thongBao"></p>
 </div>
 
 <script>
-    // Hàm xử lý UX: Ẩn/hiện khu vực tái ký
+    // 1. Quản lý Ẩn/Hiện khi tích checkbox
     function anHienTaiKy() {
         const isTaiKy = document.getElementById('trangThaiTaiKy').checked;
         const khuVuc = document.getElementById('khuVucTaiKy');
+        const nutGui = document.getElementById('nutGuiHoSo');
+        const nutGoiLai = document.getElementById('nutGoiLai');
+        const thongBaoMSNV = document.getElementById('thongBaoMSNV');
+        const thongBao = document.getElementById('thongBao');
+
+        thongBao.innerText = "";
 
         if (isTaiKy) {
-            khuVuc.style.display = 'block'; // Hiện ra
+            khuVuc.style.display = 'block';
+            nutGui.style.display = 'none';    // Khóa nút gửi chờ kiểm tra
+            nutGoiLai.style.display = 'none'; // Giấu nút gọi lại
+            thongBaoMSNV.innerText = "";
         } else {
-            khuVuc.style.display = 'none'; // Ẩn đi
-            // Tự động bỏ dấu tích ở 2 ô con nếu người dùng bỏ tích ô mẹ
-            document.getElementById('noCongNo').checked = false;
-            document.getElementById('viPhamNhanThan').checked = false;
+            khuVuc.style.display = 'none';
+            nutGui.style.display = 'block';   // Trả lại nút gửi cho người mới
+            nutGoiLai.style.display = 'none'; // Giấu nút gọi lại
         }
     }
 
+    // 2. Tra cứu MSNV
+    async function kiemTraMSNV() {
+        const msnv = document.getElementById('msnv').value.trim();
+        const thongBao = document.getElementById('thongBaoMSNV');
+        const nutGui = document.getElementById('nutGuiHoSo');
+        const nutGoiLai = document.getElementById('nutGoiLai');
+
+        if (!msnv) {
+            thongBao.innerText = "Vui lòng nhập Mã số nhân viên để kiểm tra!";
+            thongBao.style.color = "red";
+            return;
+        }
+
+        thongBao.innerText = "Đang tra cứu dữ liệu...";
+        thongBao.style.color = "blue";
+        nutGoiLai.style.display = 'none';
+
+        try {
+            const response = await fetch(`/api/recruitment/check-msnv?msnv=${msnv}`);
+
+            if (response.ok) {
+                thongBao.innerText = "✔ Mã số hợp lệ. Vui lòng bấm nộp hồ sơ bên dưới.";
+                thongBao.style.color = "green";
+                nutGui.style.display = 'block';
+            } else {
+                // CHẶN HỒ SƠ - MỞ CÁNH CỬA YÊU CẦU GỌI LẠI
+                thongBao.innerHTML = "✖ Hồ sơ không đủ điều kiện đăng ký.<br>Vui lòng liên hệ Tổng đài (1055) để được hỗ trợ giải quyết!";
+                thongBao.style.color = "red";
+                nutGui.style.display = 'none';
+                nutGoiLai.style.display = 'block'; // HIỆN NÚT GỌI LẠI MÀU CAM LÊN
+            }
+        } catch (error) {
+            thongBao.innerText = "Lỗi kết nối đến máy chủ!";
+            thongBao.style.color = "orange";
+        }
+    }
+
+    // 3. Hàm kích hoạt khi bấm nút "Yêu cầu gọi lại"
+    async function yeuCauGoiLai() {
+        const data = {
+            hoTen: document.getElementById('hoTen').value,
+            soCCCD: document.getElementById('soCCCD').value,
+            soDienThoai: document.getElementById('soDienThoai').value,
+            msnv: document.getElementById('msnv').value
+        };
+
+        if(!data.hoTen || !data.soDienThoai) {
+            alert("Vui lòng điền Họ tên và Số điện thoại để Nhân sự có thể gọi lại cho bạn!");
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/recruitment/request-callback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.text();
+
+            // Xóa form và hiện lời cảm ơn
+            const thongBaoChinh = document.getElementById('thongBao');
+            thongBaoChinh.innerText = "✔ " + result;
+            thongBaoChinh.style.color = "green";
+            thongBaoChinh.style.padding = "15px";
+            thongBaoChinh.style.background = "#e8f5e9";
+            thongBaoChinh.style.borderRadius = "6px";
+
+            // Giấu nút đi để tránh bấm nhiều lần
+            document.getElementById('nutGoiLai').style.display = 'none';
+
+        } catch (error) {
+            alert("Lỗi: Không kết nối được với Server!");
+        }
+    }
+
+    // 4. Gửi hồ sơ bình thường
     async function nopHoSo() {
+        // (Code gửi hồ sơ giữ nguyên như cũ của bạn)
         const data = {
             hoTen: document.getElementById('hoTen').value,
             soCCCD: document.getElementById('soCCCD').value,
             loaiBangLai: document.getElementById('loaiBangLai').value,
+            tuoi: parseInt(document.getElementById('tuoi').value),
             trangThaiTaiKy: document.getElementById('trangThaiTaiKy').checked,
-            noCongNo: document.getElementById('noCongNo').checked,
-            viPhamNhanThan: document.getElementById('viPhamNhanThan').checked,
             datSucKhoe: true
         };
 
@@ -124,14 +207,10 @@
             });
 
             const result = await response.text();
-            const messageElement = document.getElementById('thongBao');
-            messageElement.innerText = "Hệ thống phản hồi: " + result;
-
-            messageElement.style.color = result.includes("loại") ? "red" : "green";
-
+            document.getElementById('thongBao').innerText = "Hệ thống phản hồi: " + result;
+            document.getElementById('thongBao').style.color = result.includes("loại") ? "red" : "green";
         } catch (error) {
-            document.getElementById('thongBao').innerText = "Lỗi: Không kết nối được với Server!";
-            document.getElementById('thongBao').style.color = "orange";
+            alert("Lỗi: Không kết nối được với Server!");
         }
     }
 </script>
